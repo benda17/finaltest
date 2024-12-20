@@ -79,24 +79,41 @@
   </div>
 
   <script>
+    const apiKey = 'AIzaSyDJNZBPUfMG_mXeO5RunzITWd3fdMhJGNI'; 
+    const cseId = '65c095e29196a4edc'; 
+
     const words = [
       { hebrew: "אבא", english: "Father" },
       { hebrew: "אמא", english: "Mother" },
       { hebrew: "תפוח", english: "Apple" },
-      { hebrew: "ספר", english: "Book" },
+      { hebrew: "ספר", english: "Book" }
     ];
 
-    const loadWords = () => {
+    const fetchImage = async (query) => {
+      const response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?q=${query}&cx=${cseId}&key=${apiKey}&searchType=image&num=1`
+      );
+      const data = await response.json();
+      return data.items[0].link;
+    };
+
+    const loadWords = async () => {
       const container = document.getElementById("words-container");
-      words.forEach(({ hebrew, english }) => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-          <p><strong>${hebrew}</strong></p>
-          <p>${english}</p>
-          <button onclick="playSound('${hebrew}')">🔊 Hear</button>`;
-        container.appendChild(card);
-      });
+      for (const { hebrew, english } of words) {
+        try {
+          const imageUrl = await fetchImage(english);
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <img src="${imageUrl}" alt="${english}">
+            <p><strong>${hebrew}</strong></p>
+            <p>${english}</p>
+            <button onclick="playSound('${hebrew}')">🔊 Hear</button>`;
+          container.appendChild(card);
+        } catch (error) {
+          console.error('Error fetching image:', error);
+        }
+      }
     };
 
     const playSound = (text) => {
